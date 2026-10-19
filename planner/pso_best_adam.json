@@ -1,0 +1,16 @@
+{
+  "score": 4,
+  "cfg": {
+    "alpha": 0.3314,
+    "gamma": 0.8517,
+    "epsilon": 1.0,
+    "epsilon_decay": 0.9784,
+    "min_epsilon": 0.01,
+    "episodes": 200,
+    "max_steps": 200,
+    "optimizer": "adam",
+    "reward_scale": 0.5369,
+    "adam_beta1": 0.8691,
+    "adam_beta2": 0.9759
+  }
+}

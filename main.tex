@@ -1,0 +1,709 @@
+\documentclass[12pt,a4paper]{report}
+
+% =========================
+% Packages
+% =========================
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}   % images
+\usepackage{amsmath}    % equations
+\usepackage{geometry}   % margins
+\usepackage{caption}    % better captions
+\usepackage{booktabs}   % nice tables
+\usepackage[pages=all]{background} % overlay logo w/o affecting layout
+\usepackage{fancyhdr}   % footer/page number
+\usepackage{hyperref}   % links (KEEP LAST)
+
+% =========================
+% Page Geometry
+% =========================
+\geometry{margin=1in} % text starts at 1in like Word
+
+% =========================
+% Header Logo Overlay (does NOT push text)
+% =========================
+\newcommand{\HeaderLogo}{figures/British_University_in_Egypt.png}
+
+% Top-right header-like placement
+\backgroundsetup{
+  scale=1,
+  angle=0,
+  opacity=1,
+  contents={\includegraphics[height=2.0cm]{\HeaderLogo}},
+  position={current page.north east},
+  hshift=-2.6cm, % horiz tweak
+  vshift=-1.4cm  % vertical tweak
+}
+
+% =========================
+% Footer Page Numbers
+% =========================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% =========================
+% Metadata
+% =========================
+\title{AI Planning for Robot Systems \\ \large Coursework 1 Report}
+\author{Group Members}
+\date{Semester One, 2024--2025}
+
+\begin{document}
+
+% ====== Title Page ======
+\begin{titlepage}
+    % \NoBgThispage % <- uncomment to hide header logo on title page only
+    \centering
+    {\LARGE \textbf{AI Planning for Robot Systems}\\[0.75em]
+    \large Coursework 1 Report\par}
+
+    \vspace{1.5cm}
+    % --- Students replace this with their own project/org logo ---
+    \includegraphics[width=0.65\textwidth]{figures/logo.png}\\
+
+    \vspace{1.5cm}
+    {\large \textbf{Group Members}\par}
+    \vspace{0.6cm}
+
+    % ====== Names & IDs table (on title page) ======
+    \renewcommand{\arraystretch}{1.2} % row spacing
+    \begin{center}
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Name} & \textbf{Student ID} \\
+        \midrule
+        Jana Mostafa & 232789 \\
+        Seif Emad & 236467 \\
+        Seif Mahmoud & 232470 \\
+        Omar Nassar & 233042\\
+        \bottomrule
+    \end{tabular}
+    \end{center}
+
+    \vfill
+    {\large Semester One, 2024--2025\par}
+\end{titlepage}
+
+% ====== Front Matter ======
+\pagenumbering{roman}
+\tableofcontents
+\listoffigures
+\listoftables
+\newpage
+\pagenumbering{arabic}
+
+% ====== Introduction ======
+\chapter{Introduction}
+
+
+This work focuses on the design and implementation of the autonomous planning system for a \textbf{home cleaning robot} inside a structured, dynamic indoor environment. Using the \texttt{Pygame} framework and based on basic principles of \textbf{ROS/SLAM}, our focus will be on developing a \textbf{Hybrid Path Planner}. The system will make use of \textbf{A*} or \textbf{Dijkstra's Algorithm} in creating the most optimized global path around static house obstacles and will be combined with a reactive method to tackle the high-stakes challenge of \textbf{real-time avoidance} of unpredictable dynamic obstacles, such as moving humans and pets. The first major deliverable is the successful simulation of this robust navigation strategy that demonstrates core competencies in mobile robotics autonomy.
+
+The current document outlines the deployment and measurement of two state-of-the-art robotic coordination techniques for autonomous house cleaning, which are multi-agent swarm intelligence and reinforcement learning through Q-learning. The system overcome the problem of effective dirt collection in a grid-based area by parallel cooperative cleaning through swarm robotics and sequential adaptive learning through Q-learning with hyperparameter tuning via Particle Swarm Optimization (PSO). The main goal is to showcase the teamwork of several autonomous agents in cleaning a habitat very effectively, at the same time, investigating ways of optimizing reinforcement learning to enhance the performance of single-agent sequential cleaning.
+
+  \begin{itemize}
+    \item Project objectives are
+    \begin{enumerate}
+        \item Design \& Implement a Hybrid Path Planner
+        \item Achieve Autonomous Mapping \& Localization
+        \item Validate Coverage and Efficiency
+    \end{enumerate}
+\end{itemize}
+    \section*{Sensors:}
+\begin{enumerate}
+    \item Lidar/Range Sensor is used in the (\texttt{ekf\_update}) function for detecting static and dynamic obstacles.
+    \item Dirt sensors are used by checking \texttt{grid[robot.row][robot.col].has\_dirt} then directly calling the \texttt{remove\_dirt()} function, which guarantees that the robot senses its cleaning target.
+    \item An obstacle sensor (static/dynamic) is used by checking \texttt{grid[nr][nc].is\_barrier} and \texttt{getattr(grid[nr][nc], 'has\_dynamic', False)} before moving to a cell, which provides the needed collision information for path planning around static and dynamic obstacles.
+\end{enumerate}
+\section*{Actuators:}
+\begin{enumerate}
+    \item Drive Motors/Wheels: The Robot uses \texttt{self.speed} and the \texttt{move\_towards} method to change the robot's coordinates (\texttt{self.x} and \texttt{self.y}), consequently executing planned motion.
+    \item Cleaning Mechanism: \texttt{grid[robot.row][robot.col].remove\_dirt()} is executed when the robot reaches a dirty cell, which represents actuators like a vacuum or mop performing the home cleaning function.
+\end{enumerate}
+ \section*{Project Scenario: Autonomous Home Cleaning}
+
+\begin{itemize}
+    \item \textbf{Scenario:} Our project simulates an autonomous mobile robot tasked with \textbf{cleaning a house environment}.
+    \begin{itemize}
+        \item \textbf{Environment:} A structured indoor space (house or floor plan) represented by a \textbf{2D Occupancy Grid Map}.
+        \item \textbf{Static Elements:} Fixed obstacles such as \textbf{walls, tables, and furniture} 
+        \item \textbf{Dynamic Elements:} \textbf{Unpredictable moving obstacles} such as a cat or human 
+        \item \textbf{Task:} The robot must achieve \textbf{optimal area coverage} to locate and eliminate all "dirt spots" placed randomly on the map.
+    \end{itemize}
+\begin{itemize}
+\section*{Relevance and challenges faced:}
+    \begin{enumerate}
+        \item \textbf{Relevant}
+        \begin{itemize}
+            \item [$\checkmark$] High Commercial Demand
+            \item [$\checkmark$] Automation of Mundane Tasks
+            \item [$\checkmark$] Structured Environment Application
+        \end{itemize}
+   
+    \item \textbf{Challenging}
+    \begin{itemize}
+        \item [$\checkmark$] Dynamic Obstacle Avoidance
+        \item [$\checkmark$] Hybrid Planning Requirement (Handling both static / dynamic obstacles)
+        \item [$\checkmark$] SLAM Complexity
+        \item [$\checkmark$] Task Optimization
+    \end{itemize}
+\end{enumerate}
+\end{itemize}
+
+
+% ====== Pipeline Overview (appears immediately after Introduction) ======
+\chapter{System Pipeline Overview}
+The following project will give a high-level overview of our autonomous \textbf{Hybrid Navigation Pipeline} and workflow of our robot. Our process starts at the \textbf{Perception Layer}, where raw sensor data—Lidar/Odometry—is fed into the \textbf{SLAM} module, which is concurrently localizing the robot and generating the dynamic \textbf{2D Occupancy Grid Map}.  The result of this is the \textbf{Global Path}, which is then fed into the stage of \textbf{Local Planning}. This stage would be considered a reactive collision methodology (e.g., DWA in future work) and will continuously check for dynamic obstacles (cat, human) and produce instantaneous \textbf{Velocity Commands}. This would be an iterative workflow that maintains a short, optimal route but ensures real-time safety during the execution of the task and completion of the cleaning mission.
+
+The robots are cleaning the environment which is a 50×50 grid-based environment, and the system works in a way that it uses three main operational modes. The modes are as follows:
+Swarm Mode Pipeline:
+
+Initialization of the environment with several robots \textbf{(at least 3 agents)}
+Random placement of dirt \textbf{(20 spots plus if there is not enough)}
+Parallel assignment of targets by using unsupervised dirt detection
+Planning of the paths with A* algorithm for each robot
+Simultaneous execution with communication flags that stop the conflict over targets
+Reassignment until all the dirt is cleared is done continuously
+
+\textbf {Q-Learning Mode Pipeline}
+
+A single robot is initialized at the starting position
+Finding out the nearest dirt using the breadth-first search
+200 episodes of Q-learning training for specific dirt as the goal
+From the Q-table the policy is extracted
+The path is followed and dirt is collected
+The process is repeated until the environment is clean 
+
+\textbf {PSO Hyperparameter Optimization Pipeline}
+
+The initialization of the particle swarm (8 particles) is done with random hyperparameter vectors
+For every particle configuration, the headless Q-learning is executed
+The length of the path is evaluated as fitness metric
+The particle’s position and velocity are updated based on the best personal and global
+6 iterations of the refinement process
+The best configuration for each optimizer (SGD, Momentum, Adam) is identified
+
+\begin{figure}[!htbp]
+    \centering
+    % Replace with your end-to-end pipeline/architecture diagram
+    \includegraphics[width=\textwidth]{figures/robotarch.png}
+    \caption{End-to-end system pipeline.}
+    \label{fig:pipeline}
+\end{figure}
+
+
+
+\clearpage
+
+% ====== Design Approach ======
+\chapter{Design Approach}\label{chap:design}
+
+\section{Algorithms}
+\begin{itemize}
+    \section*{Mapping and Localization Rationale}
+
+For Mapping and Localization, we chose \textbf{SLAM} (Simultaneous Localization and Mapping) due to the fact that it solves the challenge of operating in an unknown or dynamic environment by concurrently localizing the robot and generating the \textbf{Occupancy Grid Map} while tracking its own position simultaneously. This methodology is crucial for two reasons: firstly, it removes the dependence on a perfectly pre-loaded map, mirroring the autonomy required in real-world scenarios. Secondly, the resulting grid map provides the essential input structure for the subsequent \textbf{A*} or \textbf{Dijkstra's Algorithm} in the global planning stage.
+
+\section*{Global Planning Rationale}
+\vspace{-0.5em} % Adjust spacing after section title
+
+\begin{itemize}
+
+    \item \textbf{Rationale behind choosing A*:} 
+    A* guarantees that the robot goes through the \textbf{optimal shortest path} and achieves superior \textbf{computational efficiency} by augmenting the search with a heuristic, typically the Manhattan distance.
+
+    \item \textbf{Rationale behind choosing Dijkstra's Algorithm:} 
+    A* is, in theory, Dijkstra's algorithm augmented with a heuristic (an educated guess) to accelerate the search. In using Dijkstra's, you leverage the \textbf{gold standard} of shortest-path calculation and thus ensure the **integrity** of your global path's optimality.
+
+\section*{Local Planning Rationale}
+\vspace{-0.5em} % Adjust spacing after section title
+
+\begin{itemize}
+
+    \item \textbf{Rationale behind choosing DWA:} 
+    In each planning cycle, DWA simulates trajectories for different pairs of velocities and scores them on the basis of criteria such as safety with respect to obstacles, goal heading, and velocity. By choosing the highest-scoring trajectory that avoids predicted collisions, DWA allows the robot to safely and reactively navigate around dynamic obstacles
+
+ \section*{Swarm Intelligence Algorithm}
+
+\vspace{0.5em} % Add a little space after the unnumbered section title for better visual separation
+
+In a swarm, large numbers of small robots operate primarily based on **independent actions**. However, they communicate information to others using **communication flags**, more precisely by sharing environment information.
+
+The basic components of the algorithm are as follows:
+
+\begin{itemize}
+    \item \textbf{Target Selection:} Robots that are not occupied use the function $\text{find\_nearest\_untargeted\_dirt()}$, which performs a **breadth-first search** to discover the closest dirt site not claimed by any other robot, to make full use of it.
+    \item \textbf{Reservation System:} The moment a robot selects a target, it assigns $\text{grid[target].targeted} = \text{True}$ and thus blocks the selection for the other robots.
+    \item \textbf{Path Planning:} **A* search** establishes collision-free paths from the robots' locations to their respective targets.
+    \item \textbf{Parallel Execution:} All robots clean the dirt when they get there and search for new targets instantly while going on their paths.
+\end{itemize}
+
+This technique helps overcome the problem of **redundancy** in the efforts and at the same time ensures that the area is properly covered by the use of implicit coordination through the targeted flag mechanism, which is very efficient.
+
+\subsection*{Q-learning with Reward Shaping}
+
+The implementation of reinforcement learning depends on the combination of **tabular Q-learning** and sophisticated **reward shaping**, which is the main reason for the fast convergence.
+
+\begin{itemize}
+    \item \textbf{State Space:} Grid positions $(r, c)$ with 4 discrete actions (up, down, left, right).
+    \item \textbf{Q-Table:} 3D array with dimensions $(\text{rows} \times \text{cols} \times 4)$ that keeps the state-action values.
+    \item \textbf{Reward Structure:} \textit{... (Details missing in the original text, add them here)}
+\end{itemize}
+
+The algorithm offers three different optimizer variants:
+
+\begin{itemize}
+    \item \textbf{SGD:} Standard Bellman update:
+    $$Q(s,a) \leftarrow Q(s,a) + \alpha\left[R + \gamma \cdot \max_{a'} Q(s',a') - Q(s,a)\right]$$
+    \item \textbf{Momentum:} Includes velocity term $v \leftarrow \beta v + \alpha \cdot \text{TD\_error}$.
+    \item \textbf{Adam:} Adaptive learning with first and second moment estimates.
+\end{itemize}
+
+\subsection*{Particle Swarm Optimization (PSO)}
+
+PSO treats the search as an 8-dimensional continuous optimization problem and optimizes seven continuous hyperparameters along with one discrete optimizer choice. 
+
+\subsubsection*{Particle Representation}
+Each particle is a vector $[\alpha, \gamma, \epsilon_{\text{decay}}, \text{reward\_scale}, \text{momentum\_}\beta, \text{adam\_}\beta_1, \text{adam\_}\beta_2, \text{optimizer\_index}]$.
+
+\subsubsection*{Update Rules}
+\begin{itemize}
+    \item \textbf{Velocity Update:} 
+    $$v_i \leftarrow \omega \cdot v_i + c_1 r_1 (p_{\text{best}} - x_i) + c_2 r_2 (g_{\text{best}} - x_i)$$
+    \item \textbf{Position Update:} $x_i \leftarrow x_i + v_i$ with clamping to parameter bounds.
+\end{itemize}
+
+\subsubsection*{Fitness and Parameters}
+\begin{itemize}
+    \item \textbf{Fitness Evaluation:} Average path length over 2 repeated headless runs (lower is better).
+    \item \textbf{Parameters:} 8 particles, 6 iterations, inertia weight $\omega=0.5$, cognitive/social coefficients $c_1=c_2=1.0$.
+\end{itemize}
+
+The optimizer index dimension maps continuous values $[0, 2]$ to discrete choices $\{\text{sgd, momentum, adam}\}$ via rounding.
+
+\section{Navigation and Obstacle Avoidance}
+\section*{Obstacle Handling Breakdown}
+
+\begin{itemize}
+    \item \textbf{Static vs. Dynamic Obstacle Handling}
+
+    \begin{enumerate}
+        \item \textbf{Static Obstacles Handling}
+        Static obstacles are defined within (\texttt{cell.is\_barrier}) in our code, which excludes the cells marked as obstacles from the navigable graph during all planning cycles. This is guaranteed by the path planning algorithms we used (\textbf{A*} and \textbf{Dijkstra's} algorithms) where the calculated path will never enter any cell that we marked as a barrier.
+        
+        \item \textbf{Dynamic Obstacles Handling}
+       DWA considers dynamic obstacles by continuously computing possible velocity commands for a robot within its dynamic constraints while predicting the motion of the robot and the motion of the surrounding obstacles over a short time horizon. It employs sensor data on moving obstacle detection and, in turn, updates its position in real time. On each planning cycle, DWA simulates trajectories for a set of different pairs of velocities and scores them on the basis of criteria such as safety with respect to obstacles, goal heading, and velocity. 
+    \end{enumerate}
+\end{itemize}
+
+
+\begin{itemize}
+    \item \textbf{Route optimization was achieved in our project by 3 approaches:}
+    
+    \begin{enumerate}
+        \item \textbf{Optimal Shortest Path:} (\textbf{A*} and \textbf{Dijkstra's}) find the optimal shortest path.
+        
+        \item \textbf{Cost Function (Uniform Cost):} The cost of moving from one cell to another is small and uniform, set at 1 (cost of 1), which models minimal traversal cost across the grid.
+        
+        \item \textbf{Search Pruning:} A* and Dijkstra's use search pruning where \textbf{A*} only searches on promising nodes that are closer to the goal (using the heuristic), and \textbf{Dijkstra's} skips any previously visited node for which a shorter path has already been found.
+    \end{enumerate}
+\end{itemize}
+\documentclass{article}
+\usepackage{amsmath} % For math symbols like * and -
+\usepackage{amssymb}
+\usepackage{booktabs} % For professional tables (good practice)
+
+\begin{document}
+
+\section*{Swarm Navigation}
+
+Swarm Navigation is based on autonomous, decentralized planning: 
+
+\begin{itemize}
+    \item \textbf{Pathfinding Algorithm:} Every robot runs independent $\text{A}^{*}$ pathfinding.
+    
+    \item \textbf{Static Obstacle Avoidance:} The $\text{A}^{*}$ algorithm inherently avoids static barriers. $\text{Is\_barrier}$ cells are considered impassable during pathfinding calculation.
+    
+    \item \textbf{Heuristic:} Optimal paths are computed based on 4-connectivity grid movement using the \textbf{Manhattan distance heuristic} for $\text{A}^{*}$ guidance.
+    
+    \item \textbf{Dynamic Obstacle Avoidance:} Dynamic avoidance is managed by constantly checking and updating the grid state during movement.
+    
+    \item \textbf{Distributed Exploration Map:} The robots update the grid cell position during their move and set the cells to $\text{was\_visited}$ to visualize a distributed exploration map.
+\end{itemize}
+
+\section*{Q-Learning Navigation}
+
+Obstacle avoidance is encoded by the learned policy through \textbf{negative collision attempt rewards}. During training: 
+
+\begin{itemize}
+    \item \textbf{Collision Penalty:} Invalid moves, such as trying to move into $\text{is\_barrier}$ cells or beyond boundaries, receive a large $\mathbf{-10}$ penalty and keep the agent in its current state.
+    
+    \item \textbf{Policy Steering:} Hence, the Q-values of collision actions naturally decrease, which in turn steers the policy towards free space.
+    
+    \item \textbf{Path Extraction:} Path extraction from the learned Q-table utilizes $\text{argmax}$ actions to yield feasible trajectories.
+\end{itemize}
+
+\textbf{Reward shaping} based on distances accelerates learning by providing gradient information towards the goal and reduces the amount of exploration required to find the optimal paths. [Image of Reinforcement Learning Reward Shaping]
+
+
+% ====== Implementation Details (moved AFTER design) ======
+\chapter{Implementation Details}\label{chap:impl}
+\begin{itemize} 
+\section*{Simulation Environment and Packages}
+\begin{figure}[!htbp]
+    \centering
+    % Replace with your end-to-end pipeline/architecture diagram
+    \includegraphics[width=\textwidth]{figures/env.jpeg}
+    \caption{System enviroment with obstacles .}
+    \label{fig:pipeline}
+\end{figure}
+
+
+\begin{itemize}
+    \item \textbf{Simulation environment:} We used \textbf{Pygame}, which is a \textbf{2D Discrete Grid map simulation} fixed at 50x50 cells (\texttt{Rows=50}), with a static background image loaded and overlaid with the discrete planning grid.
+    
+    \item \textbf{Packages:}
+    \begin{enumerate}
+        \item \textbf{Numpy:} (array manipulation for occupancy map and EKF/math operations).
+        \item \textbf{Math:} (\texttt{math.sin}, \texttt{math.cos}, \texttt{math.atan2} for motion models).
+        \item \textbf{heapq:} (priority queue for both A* and Dijkstra's search algorithms).
+    \end{enumerate}
+\end{itemize}
+\begin{itemize}
+    \item \textbf{Main functions in our system:}
+    \begin{enumerate}
+    \item \textbf{User Interaction}
+    Users interact with the system through a graphical, grid-based interface. The simulator offers options to:
+    \begin{itemize}[label={$\rightarrow$}]
+        \item Draw barriers or walls to show obstacles, such as furniture and room boundaries.
+        (\textit{Function(s): \texttt{draw\_barriers()}, \texttt{handle\_mouse\_input()}, \texttt{update\_grid()}})
+        \item Add dirt spots to define target areas that the robot must clean.
+        (\textit{Function(s): \texttt{add\_dirt()}, \texttt{handle\_mouse\_input()}, \texttt{update\_grid()}})
+        \item Place the robot anywhere on the grid to begin the cleaning or exploration process.
+        (\textit{Function(s): \texttt{place\_robot()}, \texttt{handle\_mouse\_input()}})
+        \item Users can create different environment layouts to test performance under various conditions.
+        (\textit{Function(s): \texttt{reset\_environment()}, \texttt{load\_layout()}, \texttt{save\_layout()}})
+    \end{itemize}
+
+    \item \textbf{Capabilities of the Robot}
+    The robot can perform autonomous exploration, navigation, and cleaning.
+    \begin{enumerate}[label=\alph*.]
+        \item \textbf{Map Exploration (Simulated SLAM)}
+        The system uses a Simultaneous Localization and Mapping (SLAM) simulation.
+        (\textit{Function(s): \texttt{slam\_explore()}, \texttt{update\_map()}})
+        The robot gradually discovers the environment, mapping and marking visited or unvisited cells.
+        (\textit{Function(s): \texttt{update\_coverage\_map()}, \texttt{mark\_cell\_visited()}})
+        Exploration continues until approximately 85\% of the accessible area is covered.
+        (\textit{Function(s): \texttt{check\_exploration\_progress()}, \texttt{slam\_explore()}})
+
+        \item \textbf{Path Planning}
+        The simulator supports \textbf{A*} and \textbf{Dijkstra's} algorithms.
+        (\textit{Function(s): \texttt{a\_star\_search()}, \texttt{dijkstra\_search()}})
+        The robot computes the \textbf{optimal path} from its current position to each dirt spot.
+        (\textit{Function(s): \texttt{plan\_path\_to\_target()}, \texttt{get\_next\_dirt\_spot()}})
+        The system compares performance between algorithms based on:
+        \begin{itemize}
+            \item Average cleaning time (in seconds)
+            \item Path length (in grid cells)
+            \item Success rate (percentage of dirt spots cleaned)
+        \end{itemize}
+        (\textit{Function(s): \texttt{record\_metrics()}, \texttt{calculate\_performance()}, \texttt{compare\_algorithms()}})
+
+        \item \textbf{Automatic Cleaning}
+        Once mapping is complete, the robot plans and follows paths to each dirt spot automatically.
+        (\textit{Function(s): \texttt{auto\_clean()}, \texttt{plan\_path\_to\_target()}, \texttt{move\_robot()}})
+        Cleaning continues until all dirt spots are removed.
+        (\textit{Function(s): \texttt{auto\_clean()}, \texttt{check\_dirt\_remaining()}})
+        The system ensures efficient coverage while minimizing redundant motion.
+        (\textit{Function(s): \texttt{optimize\_path()}, \texttt{auto\_clean()}})
+    \end{enumerate}
+
+    \item \textbf{Graphical User Interface}
+    The system includes a sidebar with interactive control buttons such as:
+    \begin{itemize}
+        \item \textbf{Add Robot} -- places the cleaning robot on the grid.
+        (\textit{Function(s): \texttt{add\_robot\_button()}, \texttt{place\_robot()}})
+        \item \textbf{Add Dirt} -- adds dirt spots to the environment.
+        (\textit{Function(s): \texttt{add\_dirt\_button()}, \texttt{add\_dirt()}})
+        \item \textbf{Clean (A*) / Clean (Dijkstra)} -- begins cleaning with the chosen algorithm.
+        (\textit{Function(s): \texttt{start\_cleaning\_a\_star()}, \texttt{start\_cleaning\_dijkstra()}})
+        \item \textbf{SLAM Explore} -- activates autonomous exploration.
+        (\textit{Function(s): \texttt{slam\_button()}, \texttt{slam\_explore()}})
+    \end{itemize}
+    The GUI visually displays:
+    \begin{itemize}
+        \item The robot's movement path
+        (\textit{Function(s): \texttt{draw\_path()}, \texttt{update\_display()}})
+        \item Cleaned and unexplored areas
+        (\textit{Function(s): \texttt{draw\_grid()}, \texttt{update\_map\_display()}})
+        \item Real-time updates during cleaning or exploring
+        (\textit{Function(s): \texttt{update\_display()}, \texttt{refresh\_screen()}})
+    \end{itemize}
+
+    \item \textbf{Data Recording and Analysis}
+    The system continuously records key performance indicators, including:
+    \begin{itemize}
+        \item Total cleaning time (in seconds)
+        \item Average path length (in grid cells)
+        \item Success rate (percentage of dirt spots cleaned)
+    \end{itemize}
+    (\textit{Function(s): \texttt{record\_metrics()}, \texttt{log\_results()}, \texttt{calculate\_performance()}})
+    These metrics are used to compare the performance of \textbf{A*} and \textbf{Dijkstra's} algorithms.
+    (\textit{Function(s): \texttt{compare\_algorithms()}, \texttt{export\_results()}})
+    Collected data supports evaluation, performance tuning, and optimization analysis.
+    (\textit{Function(s): \texttt{save\_results\_to\_file()}, \texttt{analyze\_data()}, \texttt{generate\_summary()}})
+\end{enumerate}
+\end{itemize}
+
+
+
+% (Optional) additional technical figures can go here
+% \begin{figure}[!htbp]
+%     \centering
+%     \includegraphics[width=0.85\textwidth]{figures/your_extra_diagram.png}
+%     \caption{Detailed module-level diagram (optional).}
+%     \label{fig:module}
+% \end{figure}
+
+% ====== Challenges and Solutions ======
+\section*{Challenges and Bottlenecks}
+\vspace{-0.5em}
+
+\begin{itemize}
+    \item \textbf{Challenges and Bottlenecks faced:}
+    \begin{itemize}
+        \item Finding the Shortest Path
+        \item Grid Path Resolution
+        \item Search Speed in Large Maps
+        \item Search Priority Management
+        \item Handling Unpredictable Movement
+        \item Map Representation
+    \end{itemize}
+\end{itemize}
+
+\section*{Techniques to Combat Challenges}
+\vspace{-0.5em}
+
+\begin{itemize}
+    \item \textbf{Techniques to combat it:}
+    \begin{itemize}
+        \item \textbf{A* algorithm} was used to guarantee an \textbf{optimal shortest path}.
+        \item Two algorithms chosen for path planning use \textbf{Neighbor-Based Search} to enhance the Grid path resolution.
+        \item \textbf{A* combats search speed in large maps} by using the **Manhattan distance as a heuristic** to estimate the straight-line cost to the goal.
+        \item Both \textbf{A* and Dijkstra's algorithms} use \textbf{priority queues} implemented by (\texttt{heapq}) solving the **Search Priority Management** issue.
+    \end{itemize}
+\end{itemize}
+\begin{itemize}
+\section*{Swarm}
+\vspace{-0.5em}
+    \item \textbf{Swarm Implementation ($\text{Cleaning-Robot.py}$):}
+    \begin{enumerate}
+        \item You can activate run swarm button then this swarm mode can be easily activated using flag draw.swarm active. $\text{run\_swarm}$ 
+        $\text{draw.swarm\_active}$.
+        \item The $\text{find\_nearest\_untargeted\_dirt()}$ function implements the communication mechanism.
+    \end{enumerate}
+
+    \item \textbf{Q-Learning Implementation ($\text{Cleaning-Robot.py}$):}
+    \begin{enumerate}
+        \item The Q-learning mode executes sequentially, training a new policy for each dirt target.
+        \item The core training function $\text{run\_qlearning\_demo\_blocking()}$ implements the configurable Q-learning algorithm with optimizer support and reward shaping logic.
+    \end{enumerate}
+
+    \item \textbf{PSO Optimization Implementation ($\text{tune\_qlearning\_pso.py}$):}
+    \begin{enumerate}
+        \item PSO tuner orchestrates per-optimizer optimization campaigns.
+        \item The main PSO loop between lines 123 and 165 realizes standard PSO update equations with per-iteration evaluation of particles by subprocess calls to headless mode.
+        \item Configuration translation and evaluation are done through environment variable passing as an $\text{evaluate\_config}$ function.
+    \end{enumerate}
+\end{itemize}
+% ====== Testing and Results ======
+\chapter{Testing and Results}
+
+\section*{Testing Scenarios}
+
+\begin{itemize}
+    \item \textbf{Normal operation}
+    \begin{itemize}
+        \item The robot auto-cleans the grid avoiding all static obstacles in a clear area, and all the static obstacles are already defined within (\texttt{is\_barrier}).
+    \end{itemize}
+
+    \item \textbf{High-traffic conditions}
+    \begin{itemize}
+        \item The robot calculates the path while multiple dynamic obstacles are moving directly within the same path, blocking the only route to the target dirt spot. This is easily handled in our code by just running the auto-clean feature at high intensity of moving dynamic obstacles.
+    \end{itemize}
+
+    \item \textbf{Emergency handling}
+    \begin{itemize}
+        \item Target cell is blocked by a static barrier. In that case, the robot cleans all the other dirt spots, leaving this exact spot as a permanently blocked spot.
+    \end{itemize}
+\end{itemize} 
+ \item \textbf{Why they represent real world use cases}
+ 
+  It would not include predefined static obstacles like walls or furniture, which are very common in structured environments like homes or warehouses. It would test basic robot functionality and accuracy in path planning.
+
+In highly dynamic environments, the robot adapt to dynamic obstacles for example humans or cats reflecting real-life unpredictability, whereby a robot has to keep updating its path in order for it to remain efficient and safe.
+
+Finally, emergency handling is for rare but critical situations involving permanent obstructions of the target area. In this way, logical decisions like skipping over inaccessible zones are made by the robot without it getting stuck or entering into an infinite loop.
+
+All these test cases, in their entirety, represent the full range of realistic operating environments and, importantly, demonstrate that the robot can perform with different levels of complexity and uncertainty in a reliable way.
+\end{itemize}
+
+\section{Performance}
+
+
+\begin{figure}[!htbp]
+    \centering
+    % Replace with your performance plot or robot visualization
+    \includegraphics[width=0.75\textwidth]{figures/performance.jpeg}
+    \caption{Performance results (e.g., comparison between different path planning algorithms }
+    \label{fig:performance}
+\end{figure}
+\begin{figure}[!htbp]
+    \centering
+    % Replace with your performance plot or robot visualization
+    \includegraphics[width=0.75\textwidth]{figures/Line.jpeg}
+    \caption{Performance results (e.g., Line plot comparison between 2 algorithms .}
+    \label{fig:performance}
+\end{figure}
+\begin{figure}[!htbp]
+    \centering
+    % Replace with your performance plot or robot visualization
+    \includegraphics[width=0.75\textwidth]{figures/bar.jpeg}
+    \caption{Performance results (e.g., Bar plot  comparison between 2 algorithms .}
+    \label{fig:performance}
+\end{figure}
+
+\section*{Q-Learning PSO Optimization Results}
+
+The PSO optimization campaign screened a total of \textbf{144 configurations} ($8 \text{ particles} \times 6 \text{ iterations} \times 3 \text{ optimizers}$) and found the optimal configuration for each optimizer type.
+
+The best configuration utilized the \textbf{Adam optimizer} and yielded the following hyperparameters:
+
+\begin{itemize}
+    \item Learning rate ($\alpha$): $0.293$
+    \item Discount factor ($\gamma$): $0.998$
+    \item Epsilon decay: $0.9472$
+    \item Reward scale: $0.579$
+    \item Adam $\beta_1$: $0.913$
+    \item Adam $\beta_2$: $0.9212$
+\end{itemize}
+
+\subsection*{Best Run Performance Metrics}
+
+The best configuration obtained, according to the given output file, achieved the following metrics:
+
+\begin{itemize}
+    \item \textbf{Path length:} $6$ steps. (Very efficient.)
+    \item \textbf{Training episodes:} $200$
+    \item \textbf{Final epsilon:} $0.010$ (Successful exploration-exploitation balance.)
+    \item \textbf{Convergence:} Epsilon decays rapidly from $1.0$ to $0.066$ at episode $50$.
+\end{itemize}
+
+The system successfully placed $5$ dirt spots, and the trained agent found a near-optimal path; thus, reward shaping with PSO-optimized hyperparameters effectively guided learning.
+
+\subsection*{Key Performance Observations}
+
+\begin{itemize}
+    \item \textbf{Scaling Reward Impact:} The optimised $\text{reward\_scale}$ of $0.579$ (below the default $1.0$) indicates that damping the magnitudes of rewards best prevented oscillations in Q-value estimates and allowed stable learning.
+    \item \textbf{High Gamma Value:} $\gamma = 0.998$ suggests that the algorithm did benefit from long-term consequences. 
+   
+\end{itemize}
+
+\subsection*{Swarm Performance Characteristics}
+
+
+\begin{itemize}
+    \item \textbf{Parallelism:} With $3$ robots, the theoretical speedup approaches $3\times$ with respect to single-agent sequential cleaning (given no path conflicts).
+    \item \textbf{Target Reservation System:} The mechanism of the $\text{targeted flag}$ avoids superfluous effort spent by several robots chasing after the same dirt.
+    \item \textbf{Scalability:} The decentralized design scales naturally with respect to more robots, mainly limited by physical crowding in densely packed barrier environments.
+\end{itemize}
+
+The $\text{BFS}$-based nearest untargeted dirt selection guarantees that each robot minimizes its travel distance, while the $\text{A}^{*}$ pathfinding ensures collision-free trajectories.
+\documentclass{article}
+\usepackage{booktabs} % For clean table lines
+\usepackage{amsmath}  % For math formatting
+
+% Set up a basic document for compilation preview
+\begin{document}
+
+\section*{Comparative Analysis}
+
+Comparing the two robotic control approaches:
+
+\begin{table}[h]
+    \centering
+    \caption{Comparative Analysis of Q-Learning vs. Swarm Heuristic Approach}
+    \label{tab:comparative}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Aspect} & \textbf{Q-Learning} & \textbf{Swarm} & \textbf{Notes} \\
+        \midrule
+        Execution Model & Sequential & Parallel & \\
+        Learning & Adaptive (per-target training) & No learning (fixed heuristic) & \\
+        Coordination & None (single agent) & Communication flags & \\
+        Computational Cost & High ($\sim 200$ episodes $\times \text{max\_steps}$ per target) & Low (direct $\text{A}^{*}$ calls) & \\
+        Optimality & Learned policy from experience & $\text{A}^{*}$ optimal paths & \\
+        Scalability & Fixed single agent & Linear with robot count & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+
+
+
+% ====== Conclusion ======
+\chapter{Conclusion}
+
+
+\subsection*{Contributions achieved in our project}
+\begin{itemize}
+    \item Implementation of Optimal Global Path Planning
+    \item Functional Grid-Based Simulation
+    \item Reactive Dynamic Obstacle Modeling
+    \item Autonomous Mission Logic
+\end{itemize}
+
+\subsection*{Reflect on limitations}
+\begin{itemize}
+    \item \textbf{Static Cost Structure:} The planner cannot distinguish between high-cost areas and low-cost areas.
+    \item \textbf{Route Smoothness:} As the A* and Dijkstra’s algorithms generate paths consisting of discrete grid-cells, this produces jagged and non-kinematically feasible routes.
+\end{itemize}
+\subsection*{Final Conclusion}
+Summarizing all that was implemented in our final project: this im-
+Implementation has successfully demonstrated two different schemes of au-
+Autonomous robotic cleaning, cooperative swarm intelligence and
+adaptive reinforcement learning. The swarm system enforces effi-
+cient multi-agent coordination based on a simple yet eﬀective target-
+reservation mechanism which allows parallel dirt collection without ex-
+plicit inter-robot communication protocols. The Q-learning implemen-
+tation, enhanced with distance-based reward shaping and PSO-
+Optimized hyperparameters result in near-optimal cleaning policies.
+converge in 200 training episodes.
+The automatic optimization of the PSO framework is effective in
+The tuning of seven hyperparameters across three variants of optimiz-
+ers, which resulted in an Adam-based configuration with 6-step path
+lengths during testing.
+
+\medskip
+
+The $\text{PSO}$ optimization framework was found effective for automatic tuning of seven hyperparameters across three variants of optimizers, which resulted in an $\text{Adam}$-based configuration with $6$-step path lengths during testing. Primary takeaway points involve the advantage of reward scaling with a reduced magnitude of $0.579$, high discounts of $\gamma = 0.998$ for long-horizon planning, and aggressive epsilon decay at $0.9472$ for fast convergence. The adaptive learning rate mechanism of the $\text{Adam}$ optimizer outperformed standard $\text{SGD}$ and $\text{momentum}$ methods.
+
+\medskip
+
+\section*{Future Improvements and work}
+\begin{itemize}
+    \item Implement a Local Planner (DWA/TEB)
+    \item Introduce Path Smoothing
+    \item ROS/Gazebo Migration
+\end{itemize}
+Future work might consider hybrid methods that combine swarm
+coordination with learned policies, transfer learning to reduce per-
+target training costs, and dynamic hyperparameter adjustment during 
+execution
+
+\end{document}
+
+% ====== References ======
+\bibliographystyle{ieeetr} % or IEEEtran
+\bibliography{references}  % expects references.bib in the same folder

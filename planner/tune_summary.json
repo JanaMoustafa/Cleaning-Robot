@@ -1,0 +1,75 @@
+{
+  "best_overall": {
+    "cfg": {
+      "alpha": 0.083,
+      "gamma": 0.991,
+      "epsilon": 1.0,
+      "epsilon_decay": 0.9825,
+      "min_epsilon": 0.01,
+      "episodes": 200,
+      "max_steps": 200,
+      "optimizer": "momentum",
+      "reward_scale": 1.595,
+      "momentum_beta": 0.895
+    },
+    "avg": 4.5,
+    "raw": [
+      5,
+      4
+    ],
+    "outs": [
+      "Warning: 'pygame' is not installed. GUI features will be disabled.\nTo use the full GUI, install pygame: pip3 install pygame\nLoaded CONFIG overrides from Q_CONFIG: {'alpha': 0.083, 'gamma': 0.991, 'epsilon': 1.0, 'epsilon_decay': 0.9825, 'min_epsilon': 0.01, 'episodes': 200, 'max_steps': 200, 'optimizer': 'momentum', 'reward_scale': 1.595, 'momentum_beta': 0.895}\nRunning headless smoke test...\nBackground image path (MAP_IMG_NAME): /Users/juju/Desktop/robot/final-home (1).png\nBackground exists: True\nPlaced 5 dirt spots\nTraining Q-Learning for target (29, 31) with optimizer=momentum\nQ-Learn: Train Ep 50/200 | Eps: 0.414 | Opt: momentum\nQ-Learn: Train Ep 100/200 | Eps: 0.171 | Opt: momentum\nQ-Learn: Train Ep 150/200 | Eps: 0.071 | Opt: momentum\nQ-Learn: Train Ep 200/200 | Eps: 0.029 | Opt: momentum\nHeadless path length: 5\n",
+      "Warning: 'pygame' is not installed. GUI features will be disabled.\nTo use the full GUI, install pygame: pip3 install pygame\nLoaded CONFIG overrides from Q_CONFIG: {'alpha': 0.083, 'gamma': 0.991, 'epsilon': 1.0, 'epsilon_decay': 0.9825, 'min_epsilon': 0.01, 'episodes': 200, 'max_steps': 200, 'optimizer': 'momentum', 'reward_scale': 1.595, 'momentum_beta': 0.895}\nRunning headless smoke test...\nBackground image path (MAP_IMG_NAME): /Users/juju/Desktop/robot/final-home (1).png\nBackground exists: True\nPlaced 5 dirt spots\nTraining Q-Learning for target (21, 17) with optimizer=momentum\nQ-Learn: Train Ep 50/200 | Eps: 0.414 | Opt: momentum\nQ-Learn: Train Ep 100/200 | Eps: 0.171 | Opt: momentum\nQ-Learn: Train Ep 150/200 | Eps: 0.071 | Opt: momentum\nQ-Learn: Train Ep 200/200 | Eps: 0.029 | Opt: momentum\nHeadless path length: 4\n"
+    ]
+  },
+  "best_per_param": {
+    "adam_beta1": {
+      "value": 0.86,
+      "avg_path": 9
+    },
+    "adam_beta2": {
+      "value": 0.92,
+      "avg_path": 9
+    },
+    "alpha": {
+      "value": 0.083,
+      "avg_path": 4.5
+    },
+    "episodes": {
+      "value": 200,
+      "avg_path": 4.5
+    },
+    "epsilon": {
+      "value": 1.0,
+      "avg_path": 4.5
+    },
+    "epsilon_decay": {
+      "value": 0.9825,
+      "avg_path": 4.5
+    },
+    "gamma": {
+      "value": 0.991,
+      "avg_path": 4.5
+    },
+    "max_steps": {
+      "value": 200,
+      "avg_path": 4.5
+    },
+    "min_epsilon": {
+      "value": 0.01,
+      "avg_path": 4.5
+    },
+    "momentum_beta": {
+      "value": 0.895,
+      "avg_path": 4.5
+    },
+    "optimizer": {
+      "value": "momentum",
+      "avg_path": 4.5
+    },
+    "reward_scale": {
+      "value": 1.595,
+      "avg_path": 4.5
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "sgd": {
+    "score": 6.5,
+    "cfg": {
+      "alpha": 0.5643,
+      "gamma": 0.8906,
+      "epsilon": 1.0,
+      "epsilon_decay": 0.9859,
+      "min_epsilon": 0.01,
+      "episodes": 200,
+      "max_steps": 200,
+      "optimizer": "sgd",
+      "reward_scale": 1.1247
+    },
+    "time": 109.5931179523468
+  },
+  "momentum": {
+    "score": 2,
+    "cfg": {
+      "alpha": 0.1859,
+      "gamma": 0.873,
+      "epsilon": 1.0,
+      "epsilon_decay": 0.9695,
+      "min_epsilon": 0.01,
+      "episodes": 200,
+      "max_steps": 200,
+      "optimizer": "momentum",
+      "reward_scale": 1.3032,
+      "momentum_beta": 0.8355
+    },
+    "time": 138.5692949295044
+  },
+  "adam": {
+    "score": 4,
+    "cfg": {
+      "alpha": 0.3314,
+      "gamma": 0.8517,
+      "epsilon": 1.0,
+      "epsilon_decay": 0.9784,
+      "min_epsilon": 0.01,
+      "episodes": 200,
+      "max_steps": 200,
+      "optimizer": "adam",
+      "reward_scale": 0.5369,
+      "adam_beta1": 0.8691,
+      "adam_beta2": 0.9759
+    },
+    "time": 109.19175505638123
+  }
+}

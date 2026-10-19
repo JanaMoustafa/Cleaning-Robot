@@ -1,0 +1,10 @@
+[
+  {
+    "algorithm": "astar",
+    "start_time": 94.27,
+    "dirt_before": 79,
+    "dirt_cleaned": 79,
+    "end_time": 188.257,
+    "time_s": 93.98700000000001
+  }
+]

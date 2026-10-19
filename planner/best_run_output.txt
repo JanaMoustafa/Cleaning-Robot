@@ -1,0 +1,21 @@
+Warning: 'pygame' is not installed. GUI features will be disabled.
+To use the full GUI, install pygame: pip3 install pygame
+Loaded CONFIG overrides from Q_CONFIG: {'alpha': 0.293, 'gamma': 0.998, 'epsilon': 1.0, 'epsilon_decay': 0.9472, 'min_epsilon': 0.01, 'episodes': 200, 'max_steps': 200, 'optimizer': 'adam', 'reward_scale': 0.579, 'adam_beta1': 0.913, 'adam_beta2': 0.9212}
+Running headless smoke test...
+Background image path (MAP_IMG_NAME): /Users/juju/Desktop/robot/final-home (1).png
+Background exists: True
+Placed 5 dirt spots
+Training Q-Learning for target (28, 23) with optimizer=adam
+Q-Learn: Train Ep 50/200
+ | Eps: 0.066
+ | Opt: adam
+Q-Learn: Train Ep 100/200
+ | Eps: 0.010
+ | Opt: adam
+Q-Learn: Train Ep 150/200
+ | Eps: 0.010
+ | Opt: adam
+Q-Learn: Train Ep 200/200
+ | Eps: 0.010
+ | Opt: adam
+Headless path length: 6
